@@ -57,8 +57,13 @@
     <!-- XP, Streak, and Goal Display -->
     <div class="bg-blue-50 p-6 rounded-2xl shadow-inner">
       <div class="flex justify-between items-center mb-3">
-        <div class="text-lg">🔥 <strong>Streak:</strong> <span id="streakCount">0</span> days</div>
-        <div class="text-lg">⭐ <strong>XP:</strong> <span id="xpCount">0</span></div>
+        <div class="text-lg">
+          🔥 <strong>Streak:</strong> <span id="streakCount">0</span> days
+        </div>
+        <div class="text-lg">
+          ⭐ <strong>XP:</strong> <span id="xpCount">0</span><br>
+          🧩 <strong>Level:</strong> <span id="levelCount">1</span>
+        </div>
       </div>
       <div class="w-full bg-gray-200 h-6 rounded-full overflow-hidden">
         <div id="xpProgressBar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-full text-white text-sm text-center leading-6 transition-all duration-300 ease-in-out">0%</div>
@@ -108,7 +113,7 @@
 
     <!-- Badges Section -->
     <div class="bg-yellow-100 p-6 rounded-2xl">
-      <h2 class="text-xl font-bold mb-2 text-yellow-700">Badges Earned</h2>
+      <h2 class="text-xl font-bold mb-2 text-yellow-700">🏅 Badges Earned</h2>
       <div id="badges" class="flex gap-3 items-center flex-wrap text-2xl">No badges yet</div>
     </div>
 
@@ -139,7 +144,7 @@
     </div>
   </div>
 
-  <!-- JavaScript Logic (Unchanged Functional Core) -->
+  <!-- JavaScript Logic -->
   <script>
     const xpEl = document.getElementById("xpCount");
     const streakEl = document.getElementById("streakCount");
@@ -176,9 +181,13 @@
       xp += amount;
       localStorage.setItem("xp", xp);
       xpEl.textContent = xp;
+
       const percent = Math.min(100, Math.round((xp % dailyGoal) / dailyGoal * 100));
       xpProgressBar.style.width = percent + "%";
       xpProgressBar.textContent = percent + "%";
+
+      const level = Math.floor(xp / 100) + 1;
+      document.getElementById("levelCount").textContent = level;
     }
 
     function updateStats() {
@@ -343,9 +352,11 @@
         .join("");
     }
 
+    // Init
     updateStreak();
     xpEl.textContent = localStorage.getItem("xp") || "0";
     updateXP(0);
+    document.getElementById("levelCount").textContent = Math.floor((parseInt(localStorage.getItem("xp") || "0")) / 100) + 1;
     updateStats();
     renderChart();
     const latest = scores[scores.length - 1]?.score || 0;
