@@ -36,6 +36,9 @@
       font-size: 0.75rem;
       pointer-events: none;
       z-index: 20;
+      pointer-events: none;
+    white-space: nowrap;
+     max-width: 200px;
     }
 
     .group:hover .tooltip {
@@ -288,12 +291,17 @@ updateWheel();
   for (let i = 0; i < 25; i++) {
     if (input[i] === key[i]) correct++;
   }
+let incorrectIndexes = [];
+
 for (let i = 0; i < 25; i++) {
   if (input[i] === key[i]) {
     questionStats[i].correct++;
+  } else {
+    incorrectIndexes.push(i + 1); // 1-based index
   }
   questionStats[i].total++;
 }
+
 localStorage.setItem("questionStats", JSON.stringify(questionStats));
 renderQuestionAccuracy();
 
@@ -302,7 +310,7 @@ renderQuestionAccuracy();
   const score = correct;
   const date = new Date().toISOString().split("T")[0];
 
-  scores.push({ date, score, testType, year: parseInt(testYear) });
+  scores.push({ date, score, testType, year: parseInt(testYear), wrong: incorrectIndexes });
   localStorage.setItem("scores", JSON.stringify(scores));
 
   document.getElementById("result").innerHTML = `✅ You scored <strong>${score}</strong> out of <strong>25</strong>.<br>✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`;
@@ -326,14 +334,16 @@ renderQuestionAccuracy();
     }
 
     function clearData() {
-      if (confirm("Are you sure you want to reset all saved data?")) {
-        localStorage.removeItem("scores");
-        localStorage.removeItem("xp");
-        localStorage.removeItem("streak");
-        localStorage.removeItem("lastPracticeDate");
-        location.reload();
-      }
-    }
+  if (confirm("Are you sure you want to reset all saved data?")) {
+    localStorage.removeItem("scores");
+    localStorage.removeItem("xp");
+    localStorage.removeItem("streak");
+    localStorage.removeItem("lastPracticeDate");
+    localStorage.removeItem("questionStats"); // ✅ This line resets question accuracy
+    location.reload();
+  }
+}
+
 
     function autoExtractAoPS() {
       const input = document.getElementById("answerKeyInput").value;
@@ -420,21 +430,26 @@ renderQuestionAccuracy();
       noTestsMsg.style.display = "none";
 
       pastTestsBody.innerHTML = scores
-        .map(t => {
-          const percent = Math.round((t.score / 25) * 100);
-          const dateStr = t.date;
-          const testTypeLabel = t.testType ? t.testType.toUpperCase() : "-";
-          return `
-            <tr>
-              <td class="px-3 py-1">${dateStr}</td>
-              <td class="px-3 py-1">${t.score} / 25</td>
-              <td class="px-3 py-1">${percent}%</td>
-              <td class="px-3 py-1 capitalize">${testTypeLabel}</td>
-              <td class="px-3 py-1">${t.year || '—'}</td>
-            </tr>
-          `;
-        })
-        .join("");
+  .map(t => {
+    const percent = Math.round((t.score / 25) * 100);
+    const dateStr = t.date;
+    const testTypeLabel = t.testType ? t.testType.toUpperCase() : "-";
+    const wrongList = t.wrong?.length ? t.wrong.join(", ") : "None";
+    return `
+      <tr class="group relative hover:bg-blue-50 transition">
+        <td class="px-3 py-1">${dateStr}</td>
+        <td class="px-3 py-1">${t.score} / 25</td>
+        <td class="px-3 py-1">${percent}%</td>
+        <td class="px-3 py-1 capitalize">${testTypeLabel}</td>
+        <td class="px-3 py-1">${t.year || '—'}</td>
+        <td class="absolute -top-7 left-1/2 transform -translate-x-1/2 bg-yellow-100 text-yellow-900 text-xs px-2 py-1 rounded shadow tooltip opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-50">
+          ❌ Missed: ${wrongList}
+        </td>
+      </tr>
+    `;
+  })
+  .join("");
+
     }
     function renderQuestionAccuracy() {
   const tbody = document.getElementById("questionAccuracyBody");
