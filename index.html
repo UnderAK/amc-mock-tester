@@ -80,7 +80,10 @@
         <!-- Wheel Chart Section -->
         <div class="mt-6">
           <h3 class="text-md font-semibold text-blue-800 mb-2">📌 Problem Distribution</h3>
-          <canvas id="problemWheel" width="150" height="150"></canvas>
+          <div class="w-full max-w-md mx-auto">
+  <canvas id="problemWheel" class="w-full h-auto"></canvas>
+</div>
+
         </div>
       </section>
 
@@ -171,32 +174,39 @@
     let totalWrong = 0;
 
      function updateWheel() {
-      const totalProblems = totalCorrect + totalWrong;
-      const wheelData = {
-        labels: ["Correct", "Incorrect"],
-        datasets: [{
-          data: [totalCorrect, totalWrong],
-          backgroundColor: ["#10b981", "#ef4444"],
-          borderColor: "#ffffff",
-          borderWidth: 2
-        }]
-      };
+  const totalProblems = totalCorrect + totalWrong;
 
-      if (window.problemChart) window.problemChart.destroy();
+  const hasData = totalProblems > 0;
 
-      window.problemChart = new Chart(problemWheel, {
-        type: "doughnut",
-        data: wheelData,
-        options: {
-          cutout: "70%",
-          plugins: {
-            legend: {
-              position: "bottom"
-            }
-          }
-        }
-      });
+  const wheelData = {
+    labels: ["Correct", "Incorrect"],
+    datasets: [{
+      data: hasData ? [totalCorrect, totalWrong] : [1],  // Fallback to show a placeholder
+      backgroundColor: hasData ? ["#10b981", "#ef4444"] : ["#d1d5db"], // green/red or gray
+      borderColor: "#ffffff",
+      borderWidth: 2
+    }]
+  };
+
+  if (window.problemChart) window.problemChart.destroy();
+
+  window.problemChart = new Chart(problemWheel, {
+    type: "doughnut",
+    data: wheelData,
+    options: {
+  maintainAspectRatio: true,
+  aspectRatio: 1, // Keeps it square
+  cutout: "70%",
+  plugins: {
+    legend: {
+      position: "bottom"
     }
+  }
+}
+
+  });
+}
+
 
     const originalGradeTest = gradeTest;
 
