@@ -149,6 +149,22 @@
         <h2 class="text-xl font-semibold text-blue-700 mb-4">📈 Score Progress</h2>
         <canvas id="scoreChart" height="150"></canvas>
       </section>
+      <section class="glass p-6 rounded-2xl shadow-xl col-span-1 lg:col-span-2">
+  <h2 class="text-xl font-semibold text-green-700 mb-4">📌 Question Accuracy</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full table-auto text-sm text-gray-800 text-center">
+      <thead>
+        <tr>
+          <th class="px-2 py-1">Q#</th>
+          <th class="px-2 py-1">Correct</th>
+          <th class="px-2 py-1">Total</th>
+          <th class="px-2 py-1">Accuracy (%)</th>
+        </tr>
+      </thead>
+      <tbody id="questionAccuracyBody" class="divide-y divide-gray-200"></tbody>
+    </table>
+  </div>
+</section>
 
       <div class="text-center col-span-full">
         <button onclick="clearData()" class="text-sm text-red-600 hover:underline hover-scale">🔄 Reset All Data</button>
@@ -172,6 +188,10 @@
     const problemWheel = document.getElementById("problemWheel").getContext("2d");
     let totalCorrect = 0;
     let totalWrong = 0;
+    let questionStats = JSON.parse(localStorage.getItem("questionStats") || "[]");
+if (questionStats.length !== 25) {
+  questionStats = Array(25).fill().map(() => ({ correct: 0, total: 0 }));
+}
 
      function updateWheel() {
   const totalProblems = totalCorrect + totalWrong;
@@ -207,27 +227,8 @@
   });
 }
 
-
+updateWheel();
     const originalGradeTest = gradeTest;
-
-    gradeTest = function() {
-      const input = document.getElementById("userAnswers").value.trim().toUpperCase();
-      const key = document.getElementById("answerKeyInput").value.trim().toUpperCase();
-
-      let correct = 0;
-      for (let i = 0; i < 25; i++) {
-        if (input[i] === key[i]) correct++;
-      }
-
-      let incorrect = 25 - correct;
-      totalCorrect += correct;
-      totalWrong += incorrect;
-      updateWheel();
-
-      originalGradeTest();
-    };
-
-    updateWheel();
 
     function updateStreak() {
       const today = new Date().toISOString().split("T")[0];
@@ -273,38 +274,52 @@
     }
 
     function gradeTest() {
-      const input = document.getElementById("userAnswers").value.trim().toUpperCase();
-      const key = document.getElementById("answerKeyInput").value.trim().toUpperCase();
-      const testType = document.getElementById("testType").value;
-      const testYear = document.getElementById("testYear").value || new Date().getFullYear();
+  const input = document.getElementById("userAnswers").value.trim().toUpperCase();
+  const key = document.getElementById("answerKeyInput").value.trim().toUpperCase();
+  const testType = document.getElementById("testType").value;
+  const testYear = document.getElementById("testYear").value || new Date().getFullYear();
 
-      if (input.length !== 25 || key.length !== 25) {
-        document.getElementById("result").innerHTML = `❌ You must enter exactly 25 characters in both fields (A–E only).`;
-        return;
-      }
+  if (input.length !== 25 || key.length !== 25) {
+    document.getElementById("result").innerHTML = `❌ You must enter exactly 25 characters in both fields (A–E only).`;
+    return;
+  }
 
-      let correct = 0;
-      for (let i = 0; i < 25; i++) {
-        if (input[i] === key[i]) correct++;
-      }
+  let correct = 0;
+  for (let i = 0; i < 25; i++) {
+    if (input[i] === key[i]) correct++;
+  }
+for (let i = 0; i < 25; i++) {
+  if (input[i] === key[i]) {
+    questionStats[i].correct++;
+  }
+  questionStats[i].total++;
+}
+localStorage.setItem("questionStats", JSON.stringify(questionStats));
+renderQuestionAccuracy();
 
-      const incorrect = 25 - correct;
-      const percent = Math.round((correct / 25) * 100);
-      const score = correct;
-      const date = new Date().toISOString().split("T")[0];
+  const incorrect = 25 - correct;
+  const percent = Math.round((correct / 25) * 100);
+  const score = correct;
+  const date = new Date().toISOString().split("T")[0];
 
-      scores.push({ date, score, testType, year: parseInt(testYear) });
-      localStorage.setItem("scores", JSON.stringify(scores));
+  scores.push({ date, score, testType, year: parseInt(testYear) });
+  localStorage.setItem("scores", JSON.stringify(scores));
 
-      document.getElementById("result").innerHTML = `✅ You scored <strong>${score}</strong> out of <strong>25</strong>.<br>✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`;
+  document.getElementById("result").innerHTML = `✅ You scored <strong>${score}</strong> out of <strong>25</strong>.<br>✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`;
 
-      updateStreak();
-      updateXP(10 + correct);
-      updateStats();
-      renderChart();
-      updateBadges(score);
-      renderPastTests();
-    }
+  // Update wheel chart
+  totalCorrect += correct;
+  totalWrong += incorrect;
+  updateWheel();
+
+  // Update gamification & statistics
+  updateStreak();
+  updateXP(10 + correct); // XP bonus: 10 base + 1 per correct answer
+  updateStats();
+  renderChart();
+  updateBadges(score);
+  renderPastTests();
+}
 
     function sanitizeInput(textarea) {
       textarea.value = textarea.value.toUpperCase().replace(/[^ABCDE]/g, '').slice(0, 25);
@@ -421,6 +436,20 @@
         })
         .join("");
     }
+    function renderQuestionAccuracy() {
+  const tbody = document.getElementById("questionAccuracyBody");
+  tbody.innerHTML = questionStats.map((q, i) => {
+    const accuracy = q.total ? Math.round((q.correct / q.total) * 100) : '—';
+    return `
+      <tr>
+        <td class="px-2 py-1 font-medium">${i + 1}</td>
+        <td class="px-2 py-1 text-green-700">${q.correct}</td>
+        <td class="px-2 py-1">${q.total}</td>
+        <td class="px-2 py-1">${accuracy}%</td>
+      </tr>
+    `;
+  }).join('');
+}
 
     // Init
     updateStreak();
@@ -432,6 +461,8 @@
     const latest = scores[scores.length - 1]?.score || 0;
     updateBadges(latest);
     renderPastTests();
+    renderQuestionAccuracy();
+
   </script>
 </body>
 </html>
