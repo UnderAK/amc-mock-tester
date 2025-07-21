@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <meta name="google-adsense-account" content="ca-pub-4838386058993800">
   <meta charset="UTF-8" />
   <title>AMC8/10/12 Tracker</title>
@@ -177,6 +179,7 @@
   </div>
   <!-- JavaScript Logic -->
   <script>
+    
     const xpEl = document.getElementById("xpCount");
     const streakEl = document.getElementById("streakCount");
     const totalEl = document.getElementById("stat-total");
@@ -196,6 +199,9 @@
 if (questionStats.length !== 25) {
   questionStats = Array(25).fill().map(() => ({ correct: 0, total: 0 }));
 }
+    let xp = parseInt(localStorage.getItem("xp") || "0");
+    let prevLevel = parseInt(localStorage.getItem("prevLevel") || "1");
+
 
      function updateWheel() {
   const totalProblems = totalCorrect + totalWrong;
@@ -250,20 +256,40 @@ updateWheel();
 
       streakEl.textContent = streak;
     }
+    function showLevelUpModal(level) {
+  document.getElementById("newLevelText").textContent = `Level ${level}`;
+  document.getElementById("levelUpModal").classList.remove("hidden");
+
+  // Optional: Confetti using canvas-confetti CDN
+  if (typeof confetti === "function") {
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+  }
+}
+
+function closeLevelUpModal() {
+  document.getElementById("levelUpModal").classList.add("hidden");
+}
 
     function updateXP(amount) {
-      let xp = parseInt(localStorage.getItem("xp") || "0");
-      xp += amount;
-      localStorage.setItem("xp", xp);
-      xpEl.textContent = xp;
+  let xp = parseInt(localStorage.getItem("xp") || "0");
+  xp += amount;
+  localStorage.setItem("xp", xp);
+  xpEl.textContent = xp;
 
-      const percent = Math.min(100, Math.round((xp % dailyGoal) / dailyGoal * 100));
-      xpProgressBar.style.width = percent + "%";
-      xpProgressBar.textContent = percent + "%";
+  const percent = Math.min(100, Math.round((xp % dailyGoal) / dailyGoal * 100));
+  xpProgressBar.style.width = percent + "%";
+  xpProgressBar.textContent = percent + "%";
 
-      const level = Math.floor(xp / 100) + 1;
-      document.getElementById("levelCount").textContent = level;
-    }
+  const level = Math.floor(xp / 100) + 1;
+  document.getElementById("levelCount").textContent = level;
+
+  if (level > prevLevel) {
+    showLevelUpModal(level);
+    localStorage.setItem("prevLevel", level);
+    prevLevel = level;
+  }
+}
+
 
     function updateStats() {
       const total = scores.length;
@@ -480,5 +506,13 @@ renderQuestionAccuracy();
     renderQuestionAccuracy();
 
   </script>
+<div id="levelUpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white p-6 rounded-2xl text-center shadow-xl max-w-xs w-full">
+    <h2 class="text-2xl font-bold text-indigo-700 mb-2">🎉 Level Up!</h2>
+    <p class="text-lg text-gray-800 mb-4">You've reached <span id="newLevelText" class="font-bold text-indigo-600"></span>!</p>
+    <button onclick="closeLevelUpModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700">Close</button>
+  </div>
+</div>
+
 </body>
 </html>
