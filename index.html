@@ -10,62 +10,237 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
+  body {
+    font-family: 'Inter', sans-serif;
+  }
 
-    ::selection {
-      background-color: #c7d2fe;
-      color: #1e3a8a;
-    }
+  ::selection {
+    background-color: #c7d2fe;
+    color: #1e3a8a;
+  }
 
-    .hover-scale:hover {
-      transform: scale(1.03);
-      transition: transform 0.2s ease;
-    }
+  .hover-scale:hover {
+    transform: scale(1.03);
+    transition: transform 0.2s ease;
+  }
 
-    .tooltip {
-      position: absolute;
-      bottom: 120%;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #fef9c3;
-      color: #92400e;
-      padding: 0.25rem 0.5rem;
-      border-radius: 0.375rem;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      font-size: 0.75rem;
-      pointer-events: none;
-      z-index: 20;
-      pointer-events: none;
+  .tooltip {
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fef9c3;
+    color: #92400e;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
     white-space: nowrap;
-     max-width: 200px;
-    }
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    font-size: 0.75rem;
+    pointer-events: none;
+    z-index: 20;
+    max-width: 200px;
+  }
 
-    .group:hover .tooltip {
-      opacity: 1;
-    }
+  .group:hover .tooltip {
+    opacity: 1;
+  }
 
-    th {
-      position: sticky;
-      top: 0;
-      background: #e0f2fe;
-    }
+  th {
+    position: sticky;
+    top: 0;
+    background: #e0f2fe;
+  }
 
-    .glass {
-      background: rgba(255, 255, 255, 0.5);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-  </style>
+  .glass {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  html:not(.dark) thead.bg-blue-100 {
+  background-color: #bfdbfe; /* solid light blue */
+  color: #1e293b;
+  font-weight: 600;
+}
+
+html:not(.dark) #questionAccuracyBody td {
+  color: #1e293b;
+}
+
+html:not(.dark) #questionAccuracyBody tr:hover {
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+/* Dark mode - Question Accuracy table fix */
+html.dark thead.bg-blue-100 {
+  background-color: #1e3a8a;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+html.dark #questionAccuracyBody td {
+  color: #e2e8f0;
+}
+
+html.dark #questionAccuracyBody tr:hover {
+  background-color: rgba(96, 165, 250, 0.15);
+}
+  /* DARK MODE STYLES */
+  .dark {
+    background-color: #0f172a;
+    color: #f1f5f9;
+  }
+
+  .dark body {
+    background-color: #0f172a;
+    color: #f1f5f9;
+  }
+
+  .dark .glass {
+    background: rgba(30, 41, 59, 0.5);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(255, 255, 255, 0.05);
+  }
+
+  .dark th {
+    background: #1e293b;
+    color: #e2e8f0;
+  }
+
+  .dark select,
+  .dark input,
+  .dark textarea {
+    background-color: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+  }
+
+  .dark .bg-white {
+    background-color: #0f172a !important;
+  }
+
+  .dark .text-gray-700,
+  .dark .text-gray-600,
+  .dark .text-gray-500,
+  .dark .text-blue-700,
+  .dark .text-indigo-700,
+  .dark .text-yellow-700,
+  .dark .text-green-700 {
+    color: #cbd5e1 !important;
+  }
+
+  .dark .text-blue-900 {
+    color: #c7d2fe;
+  }
+  .dark td {
+  color: #e2e8f0;
+}
+
+.dark tr:hover {
+  background-color: rgba(30, 64, 175, 0.2);
+}
+
+.dark .divide-gray-200 {
+  border-color: #334155;
+}
+
+  .dark .tooltip {
+    background-color: #fde68a;
+    color: #1e293b;
+  }
+
+  .dark .hover\:bg-blue-50:hover {
+    background-color: #1e3a8a2b;
+  }
+
+  .dark .text-indigo-600 {
+    color: #c7d2fe;
+  }
+
+  .dark .bg-gray-200 {
+    background-color: #1e293b;
+  }
+
+  .dark .text-white {
+    color: #f8fafc;
+  }
+
+  .dark .border-blue-300 {
+    border-color: #475569;
+  }
+
+  .dark .bg-gray-700 {
+    background-color: #1f2937;
+  }
+
+  .dark .bg-indigo-600 {
+    background-color: #4f46e5;
+  }
+
+  .dark .bg-yellow-100 {
+    background-color: #fef08a;
+    color: #1e293b;
+  }
+
+  .dark .text-yellow-900 {
+    color: #1e293b;
+  }
+
+  .dark .bg-blue-600 {
+    background-color: #2563eb;
+  }
+
+  .dark .hover\:bg-blue-700:hover {
+    background-color: #1d4ed8;
+  }
+
+  .dark .bg-gradient-to-r {
+    background-image: linear-gradient(to right, #3b82f6, #6366f1);
+  }
+
+  .dark .bg-white {
+    background-color: #1e293b !important;
+  }
+
+  .dark .shadow-xl {
+    box-shadow: 0 10px 15px rgba(255, 255, 255, 0.05);
+  }
+
+  .dark .bg-black {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+  }
+
+  .dark .modal {
+    background-color: #1e293b;
+    color: #f1f5f9;
+  }
+  /* Improved styling for Question Accuracy header */
+  html:not(.dark) .question-accuracy thead th {
+  color: #000 !important;
+
+}
+html:not(.dark) .problem-distribution-header {
+  color: #4f46e5; /* Light mode: Indigo-600 */
+}
+
+html.dark .problem-distribution-header {
+  color: #cbd5e1; /* Dark mode: slate-300-ish */
+}
+
+
+
+</style>
+
 </head>
 <body class="bg-white text-gray-800 p-4 sm:p-6 min-h-screen">
   <div class="max-w-6xl mx-auto space-y-10">
     <header class="glass p-6 sm:p-8 rounded-[2rem] text-center shadow-xl">
       <h1 class="text-4xl font-bold text-blue-900 tracking-tight">📚 AMC8/10/12 Tracker</h1>
       <p class="text-sm text-blue-700 mt-2">Track your progress, earn badges, and level up your math skills!</p>
+      <button onclick="toggleDarkMode()" class="mt-4 bg-gray-200 hover:bg-gray-300 text-sm px-4 py-1 rounded-full transition dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
+  🌙 Toggle Dark Mode
+</button>
+
     </header>
     <section>
   <div class="mb-4 flex justify-center items-center gap-2">
@@ -94,13 +269,16 @@
         <div class="text-sm text-gray-600 mt-2 text-right">🎯 Daily XP Goal: <span id="dailyGoal">100</span> XP</div>
 
         <!-- Wheel Chart Section -->
-        <div class="mt-6">
-          <h3 class="text-md font-semibold text-blue-800 mb-2">📌 Problem Distribution</h3>
-          <div class="w-full max-w-md mx-auto">
-  <canvas id="problemWheel" class="w-full h-auto"></canvas>
+        <div class="mt-6 problem-distribution-container">
+  <h3 class="problem-distribution-header text-md font-semibold mb-2">
+  📌 Problem Distribution
+</h3>
+
+  <div class="w-full max-w-md mx-auto">
+    <canvas id="problemWheel" class="w-full h-auto"></canvas>
+  </div>
 </div>
 
-        </div>
       </section>
 
       <section class="glass p-6 rounded-2xl shadow-xl">
@@ -170,15 +348,20 @@
       <section class="glass p-6 rounded-2xl shadow-xl col-span-1 lg:col-span-2">
   <h2 class="text-xl font-semibold text-green-700 mb-4">📌 Question Accuracy</h2>
   <div class="overflow-x-auto">
-    <table class="w-full table-auto text-sm text-gray-800 text-center">
-      <thead>
-        <tr>
-          <th class="px-2 py-1">Q#</th>
-          <th class="px-2 py-1">Correct</th>
-          <th class="px-2 py-1">Total</th>
-          <th class="px-2 py-1">Accuracy (%)</th>
-        </tr>
-      </thead>
+    <table class="w-full table-auto text-sm text-center question-accuracy">
+
+
+
+      <thead class="bg-blue-100">
+  <tr>
+    <th class="px-2 py-1 text-black dark:text-blue-200">Q#</th>
+    <th class="px-2 py-1 text-black dark:text-blue-200">Correct</th>
+    <th class="px-2 py-1 text-black dark:text-blue-200">Total</th>
+    <th class="px-2 py-1 text-black dark:text-blue-200">Accuracy (%)</th>
+  </tr>
+</thead>
+
+
       <tbody id="questionAccuracyBody" class="divide-y divide-gray-200"></tbody>
     </table>
   </div>
@@ -224,6 +407,7 @@ document.getElementById("filterTestType").addEventListener("change", (e) => {
 
 
      function updateWheel() {
+  const isDark = document.documentElement.classList.contains("dark");
   const filteredScores = currentFilter === "all" ? scores : scores.filter(s => s.testType === currentFilter);
   let correct = 0, wrong = 0;
 
@@ -239,7 +423,9 @@ document.getElementById("filterTestType").addEventListener("change", (e) => {
     labels: ["Correct", "Incorrect"],
     datasets: [{
       data: hasData ? [correct, wrong] : [1],
-      backgroundColor: hasData ? ["#10b981", "#ef4444"] : ["#d1d5db"],
+      backgroundColor: hasData
+        ? (isDark ? ["#22c55e", "#f87171"] : ["#10b981", "#ef4444"]) // ✅ Different colors in dark/light
+        : ["#d1d5db"],
       borderColor: "#ffffff",
       borderWidth: 2
     }]
@@ -256,13 +442,15 @@ document.getElementById("filterTestType").addEventListener("change", (e) => {
       cutout: "70%",
       plugins: {
         legend: {
+          labels: {
+            color: isDark ? "#f8fafc" : "#1e293b"  // ✅ Label color based on theme
+          },
           position: "bottom"
         }
       }
     }
   });
 }
-
 
 updateWheel();
     const originalGradeTest = gradeTest;
@@ -444,6 +632,7 @@ renderQuestionAccuracy();
     }
 
     function renderChart() {
+  const isDark = document.documentElement.classList.contains('dark');
   const ctx = document.getElementById("scoreChart").getContext("2d");
   const filteredScores = currentFilter === "all" ? scores : scores.filter(s => s.testType === currentFilter);
 
@@ -470,7 +659,35 @@ renderQuestionAccuracy();
       scales: {
         y: {
           beginAtZero: true,
-          max: 25
+          max: 25,
+          ticks: {
+            color: isDark ? '#f8fafc' : '#000'
+          },
+          grid: {
+            color: isDark ? '#334155' : '#e5e7eb'
+          }
+        },
+        x: {
+          ticks: {
+            color: isDark ? '#f8fafc' : '#000'
+          },
+          grid: {
+            color: isDark ? '#334155' : '#e5e7eb'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: isDark ? '#f8fafc' : '#000'
+          }
+        },
+        tooltip: {
+          backgroundColor: isDark ? '#1e293b' : 'rgba(0, 0, 0, 0.8)',
+          titleColor: '#f8fafc',
+          bodyColor: '#f1f5f9',
+          borderColor: '#64748b',
+          borderWidth: 1
         }
       }
     }
@@ -479,36 +696,34 @@ renderQuestionAccuracy();
 
 
     function renderPastTests() {
-      if (scores.length === 0) {
-        noTestsMsg.style.display = "block";
-        pastTestsBody.innerHTML = "";
-        return;
-      }
+  if (scores.length === 0) {
+    noTestsMsg.style.display = "block";
+    pastTestsBody.innerHTML = "";
+    return;
+  }
 
-      noTestsMsg.style.display = "none";
+  noTestsMsg.style.display = "none";
 
-      pastTestsBody.innerHTML = scores
-  .map(t => {
-    const percent = Math.round((t.score / 25) * 100);
-    const dateStr = t.date;
-    const testTypeLabel = t.testType ? t.testType.toUpperCase() : "-";
-    const wrongList = t.wrong?.length ? t.wrong.join(", ") : "None";
-    return `
-      <tr class="group relative hover:bg-blue-50 transition">
-        <td class="px-3 py-1">${dateStr}</td>
-        <td class="px-3 py-1">${t.score} / 25</td>
-        <td class="px-3 py-1">${percent}%</td>
-        <td class="px-3 py-1 capitalize">${testTypeLabel}</td>
-        <td class="px-3 py-1">${t.year || '—'}</td>
-        <td class="absolute left-1/2 -translate-x-1/2 -top-12 z-50 bg-yellow-100 text-yellow-900 text-xs px-3 py-2 rounded shadow max-w-sm w-fit text-center opacity-0 group-hover:opacity-100 transition pointer-events-none break-words whitespace-normal">
-    ❌ Missed: ${wrongList}
-  </td>
-      </tr>
-    `;
-  })
-  .join("");
+  pastTestsBody.innerHTML = scores
+    .map(t => {
+      const percent = Math.round((t.score / 25) * 100);
+      const dateStr = t.date;
+      const testTypeLabel = t.testType ? t.testType.toUpperCase() : "-";
 
-    }
+      return `
+        <tr class="hover:bg-blue-50 transition">
+          <td class="px-3 py-1">${dateStr}</td>
+          <td class="px-3 py-1">${t.score} / 25</td>
+          <td class="px-3 py-1">${percent}%</td>
+          <td class="px-3 py-1 capitalize">${testTypeLabel}</td>
+          <td class="px-3 py-1">${t.year || '—'}</td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+
     function renderQuestionAccuracy() {
   const filteredScores = currentFilter === "all" ? scores : scores.filter(s => s.testType === currentFilter);
   const stats = Array(25).fill().map(() => ({ correct: 0, total: 0 }));
@@ -535,6 +750,20 @@ renderQuestionAccuracy();
       </tr>
     `;
   }).join('');
+}
+    function toggleDarkMode() {
+  document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+
+  // Rerender theme-sensitive charts after toggle
+  renderChart();
+  updateWheel();
+}
+
+
+// On page load, check saved theme
+if (localStorage.getItem('theme') === 'dark') {
+  document.documentElement.classList.add('dark');
 }
 
 
