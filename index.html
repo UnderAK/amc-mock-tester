@@ -115,9 +115,11 @@ html.dark #questionAccuracyBody tr:hover {
     border-color: #334155;
   }
 
-  .dark .bg-white {
-    background-color: #0f172a !important;
-  }
+  .dark body,
+.dark .force-dark-bg {
+  background-color: #0f172a;
+}
+
 
   .dark .text-gray-700,
   .dark .text-gray-600,
@@ -151,10 +153,6 @@ html.dark #questionAccuracyBody tr:hover {
 
   .dark .hover\:bg-blue-50:hover {
     background-color: #1e3a8a2b;
-  }
-
-  .dark .text-indigo-600 {
-    color: #c7d2fe;
   }
 
   .dark .bg-gray-200 {
@@ -198,9 +196,6 @@ html.dark #questionAccuracyBody tr:hover {
     background-image: linear-gradient(to right, #3b82f6, #6366f1);
   }
 
-  .dark .bg-white {
-    background-color: #1e293b !important;
-  }
 
   .dark .shadow-xl {
     box-shadow: 0 10px 15px rgba(255, 255, 255, 0.05);
@@ -225,7 +220,38 @@ html:not(.dark) .problem-distribution-header {
 
 html.dark .problem-distribution-header {
   color: #cbd5e1; /* Dark mode: slate-300-ish */
+
+  
 }
+#levelUpModal {
+  background-color: rgba(255, 255, 255, 0.7); /* light mode backdrop */
+  color: #1e293b; /* dark text for light mode */
+}
+
+.dark #levelUpModal {
+  background-color: rgba(0, 0, 0, 0.6); /* dark mode backdrop */
+  color: #f1f5f9;
+}
+
+#levelUpModal > div {
+  background-color: white; /* light mode modal bg */
+  color: #1e293b;
+}
+
+.dark #levelUpModal > div {
+  background-color: #1e293b; /* dark mode modal bg */
+  color: #f1f5f9;
+}
+/* Light mode modal text */
+#levelUpModal > div {
+  color: #1e293b; /* dark text */
+}
+
+/* Dark mode modal text */
+.dark #levelUpModal > div {
+  color: #f1f5f9; /* light text */
+}
+
 
 
 
@@ -235,13 +261,17 @@ html.dark .problem-distribution-header {
 <body class="bg-white text-gray-800 p-4 sm:p-6 min-h-screen">
   <div class="max-w-6xl mx-auto space-y-10">
     <header class="glass p-6 sm:p-8 rounded-[2rem] text-center shadow-xl">
-      <h1 class="text-4xl font-bold text-blue-900 tracking-tight">📚 AMC8/10/12 Tracker</h1>
-      <p class="text-sm text-blue-700 mt-2">Track your progress, earn badges, and level up your math skills!</p>
-      <button onclick="toggleDarkMode()" class="mt-4 bg-gray-200 hover:bg-gray-300 text-sm px-4 py-1 rounded-full transition dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
-  🌙 Toggle Dark Mode
-</button>
+  <h1 class="text-4xl font-bold text-blue-900 tracking-tight">📚 AMC8/10/12 Tracker</h1>
+  <p class="text-sm text-blue-700 mt-2">Track your progress, earn badges, and level up your math skills!</p>
 
-    </header>
+  <div class="mt-4 flex justify-center gap-3">
+    <button onclick="toggleDarkMode()" class="bg-gray-200 hover:bg-gray-300 text-sm px-4 py-1 rounded-full transition dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
+      🌙 Toggle Dark Mode
+    </button>
+    <a href="newtest.html" class="text-sm text-blue-600 hover:underline">ℹ️ About</a>
+  </div>
+</header>
+
     <section>
   <div class="mb-4 flex justify-center items-center gap-2">
     <label for="filterTestType" class="text-sm text-gray-700 font-medium">Filter by Test Type:</label>
@@ -260,7 +290,11 @@ html.dark .problem-distribution-header {
           <div class="text-lg">🔥 <strong>Streak:</strong> <span id="streakCount">0</span> days</div>
           <div class="text-lg">
             ⭐ <strong>XP:</strong> <span id="xpCount">0</span><br>
-            🧩 <strong>Level:</strong> <span id="levelCount">1</span>
+            <div class="mt-4 text-lg">
+  🧩 <strong>Level:</strong> <span id="levelCount">1</span>
+</div>
+
+
           </div>
         </div>
         <div class="w-full bg-gray-200 h-6 rounded-full overflow-hidden">
@@ -755,9 +789,15 @@ renderQuestionAccuracy();
   document.documentElement.classList.toggle('dark');
   localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
 
-  // Rerender theme-sensitive charts after toggle
   renderChart();
   updateWheel();
+
+  // Force a repaint so modal color updates immediately
+  const modal = document.getElementById("levelUpModal");
+  if (!modal.classList.contains("hidden")) {
+    modal.classList.add("hidden");
+    requestAnimationFrame(() => modal.classList.remove("hidden"));
+  }
 }
 
 
@@ -780,13 +820,18 @@ if (localStorage.getItem('theme') === 'dark') {
     renderQuestionAccuracy();
 
   </script>
-<div id="levelUpModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-  <div class="bg-white p-6 rounded-2xl text-center shadow-xl max-w-xs w-full">
-    <h2 class="text-2xl font-bold text-indigo-700 mb-2">🎉 Level Up!</h2>
-    <p class="text-lg text-gray-800 mb-4">You've reached <span id="newLevelText" class="font-bold text-indigo-600"></span>!</p>
+<div id="levelUpModal" class="fixed inset-0 bg-white/70 dark:bg-black/60 flex items-center justify-center z-50 hidden">
+  <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl max-w-xs w-full flex flex-col items-center text-center">
+    <h2 class="text-2xl font-bold mb-2">🎉 Level Up!</h2>
+    <p class="text-lg mb-4">
+      You reached <strong id="newLevelText">Level 1</strong>!
+    </p>
     <button onclick="closeLevelUpModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700">Close</button>
   </div>
 </div>
+
+
+
 
 </body>
 </html>
