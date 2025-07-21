@@ -67,7 +67,17 @@
       <h1 class="text-4xl font-bold text-blue-900 tracking-tight">📚 AMC8/10/12 Tracker</h1>
       <p class="text-sm text-blue-700 mt-2">Track your progress, earn badges, and level up your math skills!</p>
     </header>
-
+    <section>
+  <div class="mb-4 flex justify-center items-center gap-2">
+    <label for="filterTestType" class="text-sm text-gray-700 font-medium">Filter by Test Type:</label>
+    <select id="filterTestType" class="border border-blue-300 rounded px-2 py-1 text-sm">
+      <option value="all">All</option>
+      <option value="amc8">AMC 8</option>
+      <option value="amc10">AMC 10</option>
+      <option value="amc12">AMC 12</option>
+    </select>
+  </div>
+</section>
     <main class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <section class="glass p-6 rounded-2xl shadow-xl">
         <h2 class="text-xl font-semibold text-blue-700 mb-4">🎮 Gamification Panel</h2>
@@ -152,6 +162,8 @@
       </section>
 
       <section class="glass p-6 rounded-2xl shadow-xl col-span-1 lg:col-span-2">
+        
+
         <h2 class="text-xl font-semibold text-blue-700 mb-4">📈 Score Progress</h2>
         <canvas id="scoreChart" height="150"></canvas>
       </section>
@@ -201,18 +213,33 @@ if (questionStats.length !== 25) {
 }
     let xp = parseInt(localStorage.getItem("xp") || "0");
     let prevLevel = parseInt(localStorage.getItem("prevLevel") || "1");
+    let currentFilter = "all";
+
+document.getElementById("filterTestType").addEventListener("change", (e) => {
+  currentFilter = e.target.value;
+  renderChart();
+  renderQuestionAccuracy();
+  updateWheel();
+});
 
 
      function updateWheel() {
-  const totalProblems = totalCorrect + totalWrong;
+  const filteredScores = currentFilter === "all" ? scores : scores.filter(s => s.testType === currentFilter);
+  let correct = 0, wrong = 0;
 
+  for (const s of filteredScores) {
+    correct += s.score;
+    wrong += 25 - s.score;
+  }
+
+  const totalProblems = correct + wrong;
   const hasData = totalProblems > 0;
 
   const wheelData = {
     labels: ["Correct", "Incorrect"],
     datasets: [{
-      data: hasData ? [totalCorrect, totalWrong] : [1],  // Fallback to show a placeholder
-      backgroundColor: hasData ? ["#10b981", "#ef4444"] : ["#d1d5db"], // green/red or gray
+      data: hasData ? [correct, wrong] : [1],
+      backgroundColor: hasData ? ["#10b981", "#ef4444"] : ["#d1d5db"],
       borderColor: "#ffffff",
       borderWidth: 2
     }]
@@ -224,18 +251,18 @@ if (questionStats.length !== 25) {
     type: "doughnut",
     data: wheelData,
     options: {
-  maintainAspectRatio: true,
-  aspectRatio: 1, // Keeps it square
-  cutout: "70%",
-  plugins: {
-    legend: {
-      position: "bottom"
+      maintainAspectRatio: true,
+      aspectRatio: 1,
+      cutout: "70%",
+      plugins: {
+        legend: {
+          position: "bottom"
+        }
+      }
     }
-  }
-}
-
   });
 }
+
 
 updateWheel();
     const originalGradeTest = gradeTest;
@@ -337,7 +364,8 @@ renderQuestionAccuracy();
   const score = correct;
   const date = new Date().toISOString().split("T")[0];
 
-  scores.push({ date, score, testType, year: parseInt(testYear), wrong: incorrectIndexes });
+  scores.push({ date, score, testType, year: parseInt(testYear), wrong: incorrectIndexes, input, key });
+
   localStorage.setItem("scores", JSON.stringify(scores));
 
   document.getElementById("result").innerHTML = `✅ You scored <strong>${score}</strong> out of <strong>25</strong>.<br>✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`;
@@ -416,36 +444,39 @@ renderQuestionAccuracy();
     }
 
     function renderChart() {
-      const ctx = document.getElementById("scoreChart").getContext("2d");
-      const labels = scores.map(s => s.date);
-      const data = scores.map(s => s.score);
+  const ctx = document.getElementById("scoreChart").getContext("2d");
+  const filteredScores = currentFilter === "all" ? scores : scores.filter(s => s.testType === currentFilter);
 
-      if (window.chart) window.chart.destroy();
+  const labels = filteredScores.map(s => s.date);
+  const data = filteredScores.map(s => s.score);
 
-      window.chart = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels,
-          datasets: [{
-            label: "Score",
-            data,
-            borderColor: "#2563eb",
-            backgroundColor: "rgba(37,99,235,0.1)",
-            tension: 0.2,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 25
-            }
-          }
+  if (window.chart) window.chart.destroy();
+
+  window.chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Score",
+        data,
+        borderColor: "#2563eb",
+        backgroundColor: "rgba(37,99,235,0.1)",
+        tension: 0.2,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 25
         }
-      });
+      }
     }
+  });
+}
+
 
     function renderPastTests() {
       if (scores.length === 0) {
@@ -479,8 +510,21 @@ renderQuestionAccuracy();
 
     }
     function renderQuestionAccuracy() {
+  const filteredScores = currentFilter === "all" ? scores : scores.filter(s => s.testType === currentFilter);
+  const stats = Array(25).fill().map(() => ({ correct: 0, total: 0 }));
+
+  for (const s of filteredScores) {
+    const input = s.input || ""; // Ensure input exists
+    const key = s.key || "";
+    for (let i = 0; i < 25; i++) {
+      if (!input[i] || !key[i]) continue;
+      stats[i].total++;
+      if (input[i] === key[i]) stats[i].correct++;
+    }
+  }
+
   const tbody = document.getElementById("questionAccuracyBody");
-  tbody.innerHTML = questionStats.map((q, i) => {
+  tbody.innerHTML = stats.map((q, i) => {
     const accuracy = q.total ? Math.round((q.correct / q.total) * 100) : '—';
     return `
       <tr>
@@ -492,6 +536,7 @@ renderQuestionAccuracy();
     `;
   }).join('');
 }
+
 
     // Init
     updateStreak();
