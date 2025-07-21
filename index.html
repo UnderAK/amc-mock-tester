@@ -5,15 +5,53 @@
   <title>AMC/Mathcounts Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Inter', sans-serif;
     }
+
+    ::selection {
+      background-color: #c7d2fe;
+      color: #1e3a8a;
+    }
+
+    .hover-scale:hover {
+      transform: scale(1.03);
+      transition: transform 0.2s ease;
+    }
+
+    .tooltip {
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #fef9c3;
+      color: #92400e;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      font-size: 0.75rem;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .group:hover .tooltip {
+      opacity: 1;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #e0f2fe;
+    }
   </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-100 to-blue-50 text-gray-800 p-6 min-h-screen">
+<body class="bg-gradient-to-br from-indigo-100 to-blue-50 text-gray-800 p-4 sm:p-6 min-h-screen">
 
-  <div class="max-w-4xl mx-auto bg-white p-8 rounded-3xl shadow-xl space-y-8">
+  <div class="max-w-5xl mx-auto bg-white p-6 sm:p-8 rounded-[2rem] shadow-[0_10px_25px_rgba(0,0,0,0.1)] space-y-10 transition-all">
     <h1 class="text-3xl font-bold text-center text-blue-800">📚 AMC/Mathcounts Tracker</h1>
 
     <!-- XP, Streak, and Goal Display -->
@@ -29,9 +67,7 @@
     </div>
 
     <div class="text-right">
-      <button onclick="clearData()" class="text-sm text-red-600 hover:underline">
-        🔄 Reset All Data
-      </button>
+      <button onclick="clearData()" class="text-sm text-red-600 hover:underline hover-scale">🔄 Reset All Data</button>
     </div>
 
     <!-- Test Upload Section -->
@@ -42,24 +78,19 @@
         <option value="amc10">AMC 10</option>
         <option value="amc12">AMC 12</option>
       </select>
+
       <label class="block mb-2 font-semibold text-blue-700">Select Test Year</label>
-<input type="number" id="testYear" min="2000" max="2099" step="1" value="" 
-       class="w-full border border-blue-300 rounded p-2 mb-4" placeholder="e.g., 2025">
+      <input type="number" id="testYear" min="2000" max="2099" step="1" class="w-full border border-blue-300 rounded p-2 mb-4" placeholder="e.g., 2025">
 
       <label class="block mb-2 font-semibold text-blue-700">Enter Your Answers</label>
-      <textarea id="userAnswers" rows="2"
-        oninput="sanitizeInput(this)" class="w-full border border-blue-300 rounded p-2 mb-4"
-        placeholder="Exactly 25 letters A–E only"></textarea>
+      <textarea id="userAnswers" rows="2" oninput="sanitizeInput(this)" class="w-full border border-blue-300 rounded p-2 mb-4" placeholder="Exactly 25 letters A–E only"></textarea>
 
       <label class="block mb-2 font-semibold text-blue-700">Enter Official Answer Key</label>
-      <textarea id="answerKeyInput" rows="2"
-        oninput="sanitizeInput(this)" class="w-full border border-blue-300 rounded p-2 mb-2"
-        placeholder="Paste from AoPS or enter 25 letters A–E only"></textarea>
+      <textarea id="answerKeyInput" rows="2" oninput="sanitizeInput(this)" class="w-full border border-blue-300 rounded p-2 mb-2" placeholder="Paste from AoPS or enter 25 letters A–E only"></textarea>
 
-      <button onclick="autoExtractAoPS()" class="mb-4 text-sm text-blue-600 hover:underline">✨ Auto-Extract from AoPS Text</button>
-      <br>
-      <button onclick="gradeTest()"
-        class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-full hover:brightness-110">Grade Test</button>
+      <button onclick="autoExtractAoPS()" class="mb-4 text-sm text-blue-600 hover:underline hover-scale">✨ Auto-Extract from AoPS Text</button><br>
+
+      <button onclick="gradeTest()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-full hover:scale-105 transition-transform hover:shadow-md">Grade Test</button>
 
       <div id="result" class="mt-4 text-green-700 font-semibold"></div>
     </div>
@@ -78,7 +109,7 @@
     <!-- Badges Section -->
     <div class="bg-yellow-100 p-6 rounded-2xl">
       <h2 class="text-xl font-bold mb-2 text-yellow-700">Badges Earned</h2>
-      <div id="badges" class="flex gap-3 items-center flex-wrap">No badges yet</div>
+      <div id="badges" class="flex gap-3 items-center flex-wrap text-2xl">No badges yet</div>
     </div>
 
     <!-- Past Tests Section -->
@@ -86,29 +117,29 @@
       <h2 class="text-xl font-bold mb-2 text-blue-700">📝 Past Tests</h2>
       <table class="w-full table-auto text-sm text-gray-700">
         <thead>
-          <tr class="bg-blue-100">
+          <tr>
             <th class="px-3 py-2 text-left">Date</th>
             <th class="px-3 py-2 text-left">Score</th>
             <th class="px-3 py-2 text-left">Percent</th>
             <th class="px-3 py-2 text-left">Test Type</th>
             <th class="px-3 py-2 text-left">Year</th>
-
           </tr>
         </thead>
-        <tbody id="pastTestsBody" class="divide-y divide-gray-200">
-          <!-- Filled by JS -->
-        </tbody>
+        <tbody id="pastTestsBody" class="divide-y divide-gray-200"></tbody>
       </table>
-      <p id="noTestsMsg" class="text-gray-500 mt-2 text-center">No past tests available.</p>
+      <p id="noTestsMsg" class="text-gray-500 mt-2 text-center">📭 You haven’t taken any tests yet. Time to get solving!</p>
     </div>
 
     <!-- Score Chart -->
-    <div class="bg-white p-6 rounded-2xl border border-blue-100">
+    <div class="bg-white p-6 rounded-2xl border border-blue-100 overflow-x-auto">
       <h2 class="text-xl font-bold mb-2 text-blue-700">📈 Score Progress</h2>
-      <canvas id="scoreChart" height="150"></canvas>
+      <div class="min-w-[300px]">
+        <canvas id="scoreChart" height="150"></canvas>
+      </div>
     </div>
   </div>
 
+  <!-- JavaScript Logic (Unchanged Functional Core) -->
   <script>
     const xpEl = document.getElementById("xpCount");
     const streakEl = document.getElementById("streakCount");
@@ -245,14 +276,12 @@
 
       badgeEl.innerHTML = badges.length
         ? badges.map(b => `
-          <div class="relative group">
-            <span class="text-2xl cursor-pointer">${b.emoji}</span>
-            <div class="absolute bottom-full mb-2 w-max bg-yellow-200 text-yellow-900 text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap shadow-md select-none z-10">
-              ${b.title}
+            <div class="relative group hover-scale">
+              <span class="cursor-pointer">${b.emoji}</span>
+              <div class="tooltip">${b.title}</div>
             </div>
-          </div>
-        `).join("")
-        : "No badges yet";
+          `).join("")
+        : "<p class='text-sm text-gray-500'>No badges yet</p>";
     }
 
     function renderChart() {
@@ -308,7 +337,6 @@
               <td class="px-3 py-1">${percent}%</td>
               <td class="px-3 py-1 capitalize">${testTypeLabel}</td>
               <td class="px-3 py-1">${t.year || '—'}</td>
-
             </tr>
           `;
         })
