@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AMC/Mathcounts Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-100 to-blue-50 text-gray-800 p-6 min-h-screen">
+
+  <div class="max-w-4xl mx-auto bg-white p-8 rounded-3xl shadow-xl space-y-8">
+    <h1 class="text-3xl font-bold text-center text-blue-800">📚 AMC/Mathcounts Tracker</h1>
+
+    <!-- XP, Streak, and Goal Display -->
+    <div class="bg-blue-50 p-6 rounded-2xl shadow-inner">
+      <div class="flex justify-between items-center mb-3">
+        <div class="text-lg">🔥 <strong>Streak:</strong> <span id="streakCount">0</span> days</div>
+        <div class="text-lg">⭐ <strong>XP:</strong> <span id="xpCount">0</span></div>
+      </div>
+      <div class="w-full bg-gray-200 h-6 rounded-full overflow-hidden">
+        <div id="xpProgressBar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-full text-white text-sm text-center leading-6 transition-all duration-300 ease-in-out">0%</div>
+      </div>
+      <div class="text-sm text-gray-600 mt-2 text-right">🎯 Daily XP Goal: <span id="dailyGoal">100</span> XP</div>
+    </div>
+
+    <div class="text-right">
+      <button onclick="clearData()" class="text-sm text-red-600 hover:underline">
+        🔄 Reset All Data
+      </button>
+    </div>
+
+    <!-- Test Upload Section -->
+    <div class="bg-white border border-blue-200 p-6 rounded-2xl">
+      <label class="block mb-2 font-semibold text-blue-700">Select Test Type</label>
+      <select id="testType" class="w-full border border-blue-300 rounded p-2 mb-4">
+        <option value="amc8">AMC 8</option>
+        <option value="amc10">AMC 10</option>
+        <option value="amc12">AMC 12</option>
+      </select>
+      <label class="block mb-2 font-semibold text-blue-700">Select Test Year</label>
+<input type="number" id="testYear" min="2000" max="2099" step="1" value="" 
+       class="w-full border border-blue-300 rounded p-2 mb-4" placeholder="e.g., 2025">
+
+      <label class="block mb-2 font-semibold text-blue-700">Enter Your Answers</label>
+      <textarea id="userAnswers" rows="2"
+        oninput="sanitizeInput(this)" class="w-full border border-blue-300 rounded p-2 mb-4"
+        placeholder="Exactly 25 letters A–E only"></textarea>
+
+      <label class="block mb-2 font-semibold text-blue-700">Enter Official Answer Key</label>
+      <textarea id="answerKeyInput" rows="2"
+        oninput="sanitizeInput(this)" class="w-full border border-blue-300 rounded p-2 mb-2"
+        placeholder="Paste from AoPS or enter 25 letters A–E only"></textarea>
+
+      <button onclick="autoExtractAoPS()" class="mb-4 text-sm text-blue-600 hover:underline">✨ Auto-Extract from AoPS Text</button>
+      <br>
+      <button onclick="gradeTest()"
+        class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-full hover:brightness-110">Grade Test</button>
+
+      <div id="result" class="mt-4 text-green-700 font-semibold"></div>
+    </div>
+
+    <!-- Score Stats -->
+    <div class="bg-gray-50 p-6 rounded-2xl">
+      <h2 class="text-xl font-bold mb-2 text-indigo-700">📊 Test Statistics</h2>
+      <ul class="list-disc pl-5 space-y-1 text-sm text-gray-700">
+        <li>Total Tests Taken: <span id="stat-total">0</span></li>
+        <li>Last Test Date: <span id="stat-last">—</span></li>
+        <li>Average Score: <span id="stat-avg">—</span></li>
+        <li>Best Score: <span id="stat-best">—</span></li>
+      </ul>
+    </div>
+
+    <!-- Badges Section -->
+    <div class="bg-yellow-100 p-6 rounded-2xl">
+      <h2 class="text-xl font-bold mb-2 text-yellow-700">Badges Earned</h2>
+      <div id="badges" class="flex gap-3 items-center flex-wrap">No badges yet</div>
+    </div>
+
+    <!-- Past Tests Section -->
+    <div class="bg-white border border-blue-200 p-6 rounded-2xl max-h-64 overflow-y-auto">
+      <h2 class="text-xl font-bold mb-2 text-blue-700">📝 Past Tests</h2>
+      <table class="w-full table-auto text-sm text-gray-700">
+        <thead>
+          <tr class="bg-blue-100">
+            <th class="px-3 py-2 text-left">Date</th>
+            <th class="px-3 py-2 text-left">Score</th>
+            <th class="px-3 py-2 text-left">Percent</th>
+            <th class="px-3 py-2 text-left">Test Type</th>
+            <th class="px-3 py-2 text-left">Year</th>
+
+          </tr>
+        </thead>
+        <tbody id="pastTestsBody" class="divide-y divide-gray-200">
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+      <p id="noTestsMsg" class="text-gray-500 mt-2 text-center">No past tests available.</p>
+    </div>
+
+    <!-- Score Chart -->
+    <div class="bg-white p-6 rounded-2xl border border-blue-100">
+      <h2 class="text-xl font-bold mb-2 text-blue-700">📈 Score Progress</h2>
+      <canvas id="scoreChart" height="150"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const xpEl = document.getElementById("xpCount");
+    const streakEl = document.getElementById("streakCount");
+    const totalEl = document.getElementById("stat-total");
+    const lastEl = document.getElementById("stat-last");
+    const avgEl = document.getElementById("stat-avg");
+    const bestEl = document.getElementById("stat-best");
+    const badgeEl = document.getElementById("badges");
+    const xpProgressBar = document.getElementById("xpProgressBar");
+    const dailyGoal = 100;
+    const pastTestsBody = document.getElementById("pastTestsBody");
+    const noTestsMsg = document.getElementById("noTestsMsg");
+    let scores = JSON.parse(localStorage.getItem("scores") || "[]");
+
+    function updateStreak() {
+      const today = new Date().toISOString().split("T")[0];
+      const lastDate = localStorage.getItem("lastPracticeDate");
+      let streak = parseInt(localStorage.getItem("streak") || "0");
+
+      if (lastDate !== today) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yStr = yesterday.toISOString().split("T")[0];
+        streak = lastDate === yStr ? streak + 1 : 1;
+        localStorage.setItem("lastPracticeDate", today);
+        localStorage.setItem("streak", streak);
+      }
+
+      streakEl.textContent = streak;
+    }
+
+    function updateXP(amount) {
+      let xp = parseInt(localStorage.getItem("xp") || "0");
+      xp += amount;
+      localStorage.setItem("xp", xp);
+      xpEl.textContent = xp;
+      const percent = Math.min(100, Math.round((xp % dailyGoal) / dailyGoal * 100));
+      xpProgressBar.style.width = percent + "%";
+      xpProgressBar.textContent = percent + "%";
+    }
+
+    function updateStats() {
+      const total = scores.length;
+      const best = Math.max(...scores.map(s => s.score), 0);
+      const avg = scores.reduce((acc, s) => acc + s.score, 0) / (scores.length || 1);
+      const last = scores.length ? scores[scores.length - 1].date : "—";
+
+      totalEl.textContent = total;
+      bestEl.textContent = best;
+      avgEl.textContent = Math.round(avg * 100) / 100;
+      lastEl.textContent = last;
+    }
+
+    function gradeTest() {
+      const input = document.getElementById("userAnswers").value.trim().toUpperCase();
+      const key = document.getElementById("answerKeyInput").value.trim().toUpperCase();
+      const testType = document.getElementById("testType").value;
+      const testYear = document.getElementById("testYear").value || new Date().getFullYear();
+
+      if (input.length !== 25 || key.length !== 25) {
+        document.getElementById("result").innerHTML = `❌ You must enter exactly 25 characters in both fields (A–E only).`;
+        return;
+      }
+
+      let correct = 0;
+      for (let i = 0; i < 25; i++) {
+        if (input[i] === key[i]) correct++;
+      }
+
+      const incorrect = 25 - correct;
+      const percent = Math.round((correct / 25) * 100);
+      const score = correct;
+      const date = new Date().toISOString().split("T")[0];
+
+      scores.push({ date, score, testType, year: parseInt(testYear) });
+      localStorage.setItem("scores", JSON.stringify(scores));
+
+      document.getElementById("result").innerHTML = `✅ You scored <strong>${score}</strong> out of <strong>25</strong>.<br>✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`;
+
+      updateStreak();
+      updateXP(10 + correct);
+      updateStats();
+      renderChart();
+      updateBadges(score);
+      renderPastTests();
+    }
+
+    function sanitizeInput(textarea) {
+      textarea.value = textarea.value.toUpperCase().replace(/[^ABCDE]/g, '').slice(0, 25);
+    }
+
+    function clearData() {
+      if (confirm("Are you sure you want to reset all saved data?")) {
+        localStorage.removeItem("scores");
+        localStorage.removeItem("xp");
+        localStorage.removeItem("streak");
+        localStorage.removeItem("lastPracticeDate");
+        location.reload();
+      }
+    }
+
+    function autoExtractAoPS() {
+      const input = document.getElementById("answerKeyInput").value;
+      const matches = input.toUpperCase().match(/[ABCDE]/g);
+      if (matches && matches.length >= 25) {
+        document.getElementById("answerKeyInput").value = matches.slice(0, 25).join("");
+        alert("✅ Answer key extracted successfully!");
+      } else {
+        alert("❌ Couldn't extract 25 valid answers from input.");
+      }
+    }
+
+    function updateBadges(latestScore) {
+      const streak = parseInt(localStorage.getItem("streak") || "0");
+      let badges = [];
+
+      if (streak >= 3) badges.push({ emoji: "🥉", title: "3-Day Streak" });
+      if (streak >= 7) badges.push({ emoji: "🥈", title: "7-Day Streak" });
+      if (streak >= 30) badges.push({ emoji: "🥇", title: "30-Day Streak" });
+      if (streak >= 100) badges.push({ emoji: "🔥", title: "100-Day Streak" });
+      if (latestScore === 25) badges.push({ emoji: "💯", title: "Perfect Score" });
+      if (scores.length > 1) {
+        const prevScore = scores[scores.length - 2].score;
+        if (latestScore - prevScore >= 5) badges.push({ emoji: "🚀", title: "Big Improvement" });
+        if (latestScore === prevScore) badges.push({ emoji: "🎯", title: "Consistent Score" });
+      }
+      const best = Math.max(...scores.map(s => s.score), 0);
+      if (latestScore === best && latestScore !== 0) badges.push({ emoji: "⏫", title: "New Personal Best" });
+      if (latestScore >= 20) badges.push({ emoji: "🧠", title: "High Score" });
+      const totalTests = scores.length;
+      if (totalTests >= 5) badges.push({ emoji: "📚", title: "5 Tests Taken" });
+      if (totalTests >= 10) badges.push({ emoji: "📝", title: "10 Tests Taken" });
+      if (totalTests >= 25) badges.push({ emoji: "🧪", title: "25 Tests Taken" });
+
+      badgeEl.innerHTML = badges.length
+        ? badges.map(b => `
+          <div class="relative group">
+            <span class="text-2xl cursor-pointer">${b.emoji}</span>
+            <div class="absolute bottom-full mb-2 w-max bg-yellow-200 text-yellow-900 text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap shadow-md select-none z-10">
+              ${b.title}
+            </div>
+          </div>
+        `).join("")
+        : "No badges yet";
+    }
+
+    function renderChart() {
+      const ctx = document.getElementById("scoreChart").getContext("2d");
+      const labels = scores.map(s => s.date);
+      const data = scores.map(s => s.score);
+
+      if (window.chart) window.chart.destroy();
+
+      window.chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Score",
+            data,
+            borderColor: "#2563eb",
+            backgroundColor: "rgba(37,99,235,0.1)",
+            tension: 0.2,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 25
+            }
+          }
+        }
+      });
+    }
+
+    function renderPastTests() {
+      if (scores.length === 0) {
+        noTestsMsg.style.display = "block";
+        pastTestsBody.innerHTML = "";
+        return;
+      }
+
+      noTestsMsg.style.display = "none";
+
+      pastTestsBody.innerHTML = scores
+        .map(t => {
+          const percent = Math.round((t.score / 25) * 100);
+          const dateStr = t.date;
+          const testTypeLabel = t.testType ? t.testType.toUpperCase() : "-";
+          return `
+            <tr>
+              <td class="px-3 py-1">${dateStr}</td>
+              <td class="px-3 py-1">${t.score} / 25</td>
+              <td class="px-3 py-1">${percent}%</td>
+              <td class="px-3 py-1 capitalize">${testTypeLabel}</td>
+              <td class="px-3 py-1">${t.year || '—'}</td>
+
+            </tr>
+          `;
+        })
+        .join("");
+    }
+
+    updateStreak();
+    xpEl.textContent = localStorage.getItem("xp") || "0";
+    updateXP(0);
+    updateStats();
+    renderChart();
+    const latest = scores[scores.length - 1]?.score || 0;
+    updateBadges(latest);
+    renderPastTests();
+  </script>
+</body>
+</html>
