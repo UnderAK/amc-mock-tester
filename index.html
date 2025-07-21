@@ -442,9 +442,9 @@ renderQuestionAccuracy();
         <td class="px-3 py-1">${percent}%</td>
         <td class="px-3 py-1 capitalize">${testTypeLabel}</td>
         <td class="px-3 py-1">${t.year || '—'}</td>
-        <td class="absolute -top-7 left-1/2 transform -translate-x-1/2 bg-yellow-100 text-yellow-900 text-xs px-2 py-1 rounded shadow tooltip opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-50">
-          ❌ Missed: ${wrongList}
-        </td>
+        <td class="absolute left-1/2 -translate-x-1/2 -top-12 z-50 bg-yellow-100 text-yellow-900 text-xs px-3 py-2 rounded shadow max-w-sm w-fit text-center opacity-0 group-hover:opacity-100 transition pointer-events-none break-words whitespace-normal">
+    ❌ Missed: ${wrongList}
+  </td>
       </tr>
     `;
   })
